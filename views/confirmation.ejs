@@ -1,0 +1,129 @@
+<%- include('partials/header') %>
+<% const paid = booking.payment_status === 'Paid'; %>
+
+<div class="page" style="position:relative;overflow:hidden">
+  <div class="mesh mesh-sm" aria-hidden="true"></div>
+  <div class="container page-narrow" style="position:relative;z-index:1">
+
+    <div class="result">
+      <div class="result-icon <%= paid ? 'is-good' : 'is-wait' %>">
+        <% if (paid) { %>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        <% } else { %>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <% } %>
+      </div>
+
+      <h1><%= paid ? "You're booked." : 'Seat reserved.' %></h1>
+      <p>
+        <% if (paid) { %>
+          Payment received and confirmed. A receipt is on its way to
+          <strong class="strong"><%= booking.attendee_email %></strong>.
+        <% } else { %>
+          Your seat is held, but payment is still outstanding. Complete it to confirm the booking.
+        <% } %>
+      </p>
+    </div>
+
+    <div class="ticket">
+      <div class="ticket-head">
+        <div class="row-between">
+          <div>
+            <span class="eyebrow" style="margin-bottom:6px">Booking confirmation</span>
+            <h3 style="margin:0;font-size:22px"><%= booking.title %></h3>
+          </div>
+          <span class="badge <%= statusClass(booking.payment_status) %>">
+            <span class="dot"></span><%= booking.payment_status %>
+          </span>
+        </div>
+      </div>
+
+      <div class="ticket-body">
+        <dl class="kv">
+          <dt>Date</dt>
+          <dd><%= formatDate(booking.workshop_date) %> <span class="muted small">(<%= relativeDays(booking.workshop_date) %>)</span></dd>
+
+          <% if (booking.start_time) { %>
+            <dt>Time</dt>
+            <dd><%= booking.start_time %><%= booking.end_time ? ' – ' + booking.end_time : '' %></dd>
+          <% } %>
+
+          <% if (booking.location) { %>
+            <dt>Location</dt>
+            <dd><%= booking.location %></dd>
+          <% } %>
+
+          <% if (booking.instructor) { %>
+            <dt>Instructor</dt>
+            <dd><%= booking.instructor %></dd>
+          <% } %>
+
+          <dt>Attendee</dt>
+          <dd><%= booking.attendee_name %><br><span class="muted small"><%= booking.attendee_email %></span></dd>
+
+          <% if (booking.attendee_company) { %>
+            <dt>Company</dt>
+            <dd><%= booking.attendee_company %></dd>
+          <% } %>
+
+          <dt>Amount</dt>
+          <dd><%= money(booking.amount, booking.currency) %></dd>
+
+          <dt>Payment status</dt>
+          <dd><span class="badge <%= statusClass(booking.payment_status) %>"><%= booking.payment_status %></span></dd>
+
+          <% if (booking.card_type) { %>
+            <dt>Paid with</dt>
+            <dd><%= booking.card_type %></dd>
+          <% } %>
+
+          <% if (booking.bank_tran_id) { %>
+            <dt>Transaction ID</dt>
+            <dd class="mono" style="font-size:13px"><%= booking.bank_tran_id %></dd>
+          <% } %>
+
+          <% if (booking.paid_at) { %>
+            <dt>Paid at</dt>
+            <dd><%= formatDateTime(booking.paid_at) %></dd>
+          <% } %>
+
+          <% if (booking.attendee_notes) { %>
+            <dt>Requirements</dt>
+            <dd><%= booking.attendee_notes %></dd>
+          <% } %>
+        </dl>
+
+        <hr>
+
+        <p class="small muted" style="margin-bottom:6px">Booking reference</p>
+        <div class="row">
+          <span class="ticket-ref"><%= booking.tran_id %></span>
+          <button type="button" class="btn btn-secondary btn-sm no-print" data-copy="<%= booking.tran_id %>">Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mt-lg no-print" style="justify-content:center">
+      <% if (paid) { %>
+        <a href="/booking/<%= booking.id %>/receipt<%= booking.public_token ? '?t=' + booking.public_token : '' %>" class="btn btn-primary">Download receipt</a>
+      <% } else { %>
+        <a href="/booking/<%= booking.id %>/pay" class="btn btn-primary">Complete payment</a>
+      <% } %>
+      <a href="/my-bookings" class="btn btn-secondary">All my bookings</a>
+      <a href="/workshops" class="btn btn-ghost">Browse more</a>
+    </div>
+
+    <% if (paid) { %>
+      <div class="card card-soft mt-lg">
+        <span class="eyebrow" style="margin-bottom:8px">Before the day</span>
+        <ul class="small" style="margin:0;padding-left:18px;line-height:24px">
+          <li>Joining instructions are emailed 48 hours before the session.</li>
+          <li>Arrive 15 minutes early for registration and refreshments.</li>
+          <li>Need to transfer to another date? Email <a href="mailto:<%= brand.supportEmail %>"><%= brand.supportEmail %></a> at least 7 days beforehand.</li>
+        </ul>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

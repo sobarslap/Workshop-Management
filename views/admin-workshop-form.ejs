@@ -1,0 +1,155 @@
+<%- include('partials/header') %>
+<% const editing = Boolean(workshop && workshop.id); %>
+
+<div class="page">
+  <div class="container page-narrow">
+    <p class="small mb-md">
+      <a href="/admin/dashboard?tab=workshops" class="muted">&larr; Back to workshops</a>
+    </p>
+
+    <div class="page-head">
+      <span class="eyebrow"><%= editing ? 'Edit workshop' : 'New workshop' %></span>
+      <h1><%= editing ? 'Update this listing.' : 'Publish a workshop.' %></h1>
+      <p class="lead">
+        <%= editing
+            ? 'Changes go live on the public listing as soon as you save.'
+            : 'It appears on the public catalogue immediately and is open for booking.' %>
+      </p>
+    </div>
+
+    <% if (editing) { %>
+      <div class="card card-soft mb-md">
+        <div class="row-between">
+          <div>
+            <span class="stat-k">Currently booked</span>
+            <div class="stat-v" style="font-size:20px"><%= workshop.seats_taken %> / <%= workshop.capacity %></div>
+          </div>
+          <div>
+            <span class="stat-k">Paid</span>
+            <div class="stat-v" style="font-size:20px"><%= workshop.paid_count %></div>
+          </div>
+          <div>
+            <span class="stat-k">Status</span>
+            <div style="margin-top:4px">
+              <% if (workshop.status === 'active') { %>
+                <span class="badge badge-paid"><span class="dot"></span>Active</span>
+              <% } else { %>
+                <span class="badge badge-neutral">Cancelled</span>
+              <% } %>
+            </div>
+          </div>
+          <a href="/admin/workshops/<%= workshop.id %>/attendees.csv" class="btn btn-secondary btn-sm">Download roster</a>
+        </div>
+      </div>
+    <% } %>
+
+    <div class="card card-lg">
+      <form method="POST" action="<%= editing ? '/admin/workshops/' + workshop.id + '/edit' : '/admin/workshops/new' %>" class="stack" novalidate>
+
+        <div class="field">
+          <label class="label" for="title">Title <span class="req">*</span></label>
+          <input class="input" type="text" id="title" name="title" required autofocus
+                 value="<%= workshop ? workshop.title : '' %>" placeholder="Leadership Essentials">
+        </div>
+
+        <div class="field">
+          <label class="label" for="description">Description</label>
+          <textarea class="textarea" id="description" name="description"
+                    placeholder="What the session covers, who it's for, and what attendees walk away with."><%= workshop ? (workshop.description || '') : '' %></textarea>
+          <p class="help">Shown on the catalogue card and the detail page. Two or three sentences works best.</p>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label class="label" for="workshop_date">Date <span class="req">*</span></label>
+            <input class="input" type="date" id="workshop_date" name="workshop_date" required
+                   value="<%= workshop ? workshop.workshop_date : '' %>">
+          </div>
+          <div class="field">
+            <label class="label" for="level">Level</label>
+            <select class="select" id="level" name="level">
+              <option value="">Not specified</option>
+              <% ['Beginner','Intermediate','Advanced'].forEach(function (lvl) { %>
+                <option value="<%= lvl %>" <%= workshop && workshop.level === lvl ? 'selected' : '' %>><%= lvl %></option>
+              <% }); %>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label class="label" for="start_time">Start time</label>
+            <input class="input" type="time" id="start_time" name="start_time"
+                   value="<%= workshop ? (workshop.start_time || '') : '' %>">
+          </div>
+          <div class="field">
+            <label class="label" for="end_time">End time</label>
+            <input class="input" type="time" id="end_time" name="end_time"
+                   value="<%= workshop ? (workshop.end_time || '') : '' %>">
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label class="label" for="capacity">
+              Capacity <span class="req">*</span>
+            </label>
+            <input class="input" type="number" id="capacity" name="capacity" required min="1" step="1"
+                   value="<%= workshop ? workshop.capacity : 20 %>">
+            <p class="help">
+              <% if (editing && workshop.seats_taken > 0) { %>
+                Cannot go below <strong class="strong"><%= workshop.seats_taken %></strong> — that many seats are already held or paid for.
+              <% } else { %>
+                Booking closes automatically once this many seats are taken.
+              <% } %>
+            </p>
+          </div>
+          <div class="field">
+            <label class="label" for="price">Price per seat (<%= currency %>) <span class="req">*</span></label>
+            <input class="input" type="number" id="price" name="price" required min="0" step="0.01"
+                   value="<%= workshop ? workshop.price : '' %>" placeholder="4500">
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label class="label" for="location">Location</label>
+            <input class="input" type="text" id="location" name="location"
+                   value="<%= workshop ? (workshop.location || '') : '' %>" placeholder="Gulshan Training Centre, Dhaka">
+          </div>
+          <div class="field">
+            <label class="label" for="instructor">Instructor</label>
+            <input class="input" type="text" id="instructor" name="instructor"
+                   value="<%= workshop ? (workshop.instructor || '') : '' %>" placeholder="Farhana Rahman">
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <button type="submit" class="btn btn-primary btn-lg">
+            <%= editing ? 'Save changes' : 'Publish workshop' %>
+          </button>
+          <a href="/admin/dashboard?tab=workshops" class="btn btn-ghost">Cancel</a>
+        </div>
+      </form>
+    </div>
+
+    <% if (editing && workshop.status === 'active') { %>
+      <div class="card mt-md" style="box-shadow:inset 0 0 0 1px var(--error-soft)">
+        <div class="card-head">
+          <h3 style="font-size:16px;letter-spacing:-0.3px;color:var(--error-deep)">Cancel this workshop</h3>
+        </div>
+        <p class="small">
+          Removes it from the public listing and emails everyone currently holding a seat.
+          Existing bookings keep their payment records — refund them individually from the
+          registrations tab.
+        </p>
+        <form method="POST" action="/admin/workshops/<%= workshop.id %>/cancel"
+              onsubmit="return confirm('Cancel this workshop and notify all attendees?')">
+          <button type="submit" class="btn btn-danger btn-sm">Cancel workshop</button>
+        </form>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

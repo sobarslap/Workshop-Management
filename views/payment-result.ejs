@@ -1,0 +1,84 @@
+<%- include('partials/header') %>
+<%
+  const copy = {
+    paid:      { icon: 'is-good', title: 'Payment received.',        blurb: 'Your seat is confirmed.' },
+    pending:   { icon: 'is-wait', title: 'Verifying your payment.',  blurb: 'We could not reach the gateway to confirm this payment. If money left your account it will be reconciled shortly — nothing needs doing on your side.' },
+    failed:    { icon: 'is-bad',  title: 'Payment did not go through.', blurb: 'Nothing was charged. You can try again with the same or a different payment method.' },
+    cancelled: { icon: 'is-wait', title: 'Payment cancelled.',       blurb: 'You cancelled before completing the payment, so nothing was charged.' },
+    expired:   { icon: 'is-bad',  title: 'Your seat hold expired.',  blurb: 'The reservation timed out and the seat returned to general sale. If seats remain you can book again.' },
+    error:     { icon: 'is-bad',  title: 'Something went wrong.',    blurb: 'We could not match this payment to a booking.' },
+  };
+  const view = copy[outcome] || copy.error;
+%>
+
+<div class="page">
+  <div class="container page-narrow">
+    <div class="result">
+      <div class="result-icon <%= view.icon %>">
+        <% if (view.icon === 'is-good') { %>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>
+        <% } else if (view.icon === 'is-wait') { %>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <% } else { %>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+        <% } %>
+      </div>
+
+      <h1><%= view.title %></h1>
+      <p><%= view.blurb %></p>
+
+      <% if (reason && outcome !== 'paid') { %>
+        <div class="alert alert-warning" style="text-align:left;max-width:520px;margin:0 auto 24px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <span><strong>Gateway said:</strong> <%= reason %></span>
+        </div>
+      <% } %>
+
+      <% if (booking) { %>
+        <div class="ticket">
+          <div class="ticket-head">
+            <div class="row-between">
+              <div>
+                <span class="eyebrow" style="margin-bottom:6px">Booking</span>
+                <h3 style="margin:0;font-size:20px"><%= booking.title %></h3>
+              </div>
+              <span class="badge <%= statusClass(booking.payment_status) %>">
+                <span class="dot"></span><%= booking.payment_status %>
+              </span>
+            </div>
+          </div>
+          <div class="ticket-body">
+            <dl class="kv">
+              <dt>Date</dt><dd><%= formatDate(booking.workshop_date) %></dd>
+              <dt>Attendee</dt><dd><%= booking.attendee_name %></dd>
+              <dt>Amount</dt><dd><%= money(booking.amount, booking.currency) %></dd>
+              <dt>Reference</dt><dd class="mono" style="font-size:13px"><%= booking.tran_id %></dd>
+            </dl>
+          </div>
+        </div>
+
+        <div class="row mt-lg" style="justify-content:center">
+          <% if (booking.payment_status === 'Paid') { %>
+            <a href="/booking/<%= booking.id %>/confirmation" class="btn btn-primary">View confirmation</a>
+          <% } else if (booking.payment_status === 'Expired') { %>
+            <a href="/workshops/<%= booking.workshop_id %>" class="btn btn-primary">Try booking again</a>
+          <% } else { %>
+            <a href="/booking/<%= booking.id %>/pay" class="btn btn-primary">Try payment again</a>
+          <% } %>
+          <a href="/my-bookings" class="btn btn-secondary">My bookings</a>
+        </div>
+      <% } else { %>
+        <div class="row mt-lg" style="justify-content:center">
+          <a href="/workshops" class="btn btn-primary">Back to workshops</a>
+        </div>
+      <% } %>
+
+      <p class="help mt-lg">
+        Charged but not confirmed? Email <a href="mailto:<%= brand.supportEmail %>"><%= brand.supportEmail %></a>
+        with your reference and we'll sort it out.
+      </p>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,138 @@
+<%- include('partials/header') %>
+
+<div class="page">
+  <div class="container page-narrow">
+    <div class="page-head">
+      <span class="eyebrow">Settings</span>
+      <h1>Your account.</h1>
+    </div>
+
+    <div class="card mb-md">
+      <div class="row" style="gap:16px;align-items:center">
+        <span class="avatar avatar-lg"><%= initials(user.name) %></span>
+        <div>
+          <h3 style="margin:0;font-size:20px"><%= user.name %></h3>
+          <p class="small muted mb-0">
+            <%= user.email %>
+            <% if (user.role === 'admin') { %><span class="badge badge-info" style="margin-left:6px">Administrator</span><% } %>
+          </p>
+        </div>
+        <div class="spacer"></div>
+        <div class="center">
+          <div class="stat-v" style="font-size:22px"><%= bookingCount %></div>
+          <div class="stat-k">Bookings</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-md">
+      <div class="card-head">
+        <h3 style="font-size:18px;letter-spacing:-0.5px">Profile</h3>
+      </div>
+      <form method="POST" action="/account" class="stack">
+        <div class="field">
+          <label class="label" for="name">Full name</label>
+          <input class="input" type="text" id="name" name="name" required value="<%= user.name %>">
+        </div>
+        <div class="field">
+          <label class="label" for="email-display">Email <span class="label-hint">(cannot be changed)</span></label>
+          <input class="input" type="email" id="email-display" value="<%= user.email %>" disabled>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label class="label" for="phone">Phone</label>
+            <input class="input" type="tel" id="phone" name="phone" value="<%= user.phone || '' %>">
+          </div>
+          <div class="field">
+            <label class="label" for="company">Company</label>
+            <input class="input" type="text" id="company" name="company" value="<%= user.company || '' %>">
+          </div>
+        </div>
+        <div class="field mb-0">
+          <button type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card mb-md">
+      <div class="card-head">
+        <h3 style="font-size:18px;letter-spacing:-0.5px">Change password</h3>
+      </div>
+      <form method="POST" action="/account/password" class="stack">
+        <div class="field">
+          <label class="label" for="current_password">Current password</label>
+          <div class="password-wrap">
+            <input class="input" type="password" id="current_password" name="current_password" required autocomplete="current-password">
+            <button type="button" class="password-toggle" data-password-toggle="current_password">Show</button>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label" for="password">New password</label>
+          <div class="password-wrap">
+            <input class="input" type="password" id="password" name="password" required autocomplete="new-password">
+            <button type="button" class="password-toggle" data-password-toggle="password">Show</button>
+          </div>
+          <div class="strength" data-strength-for="password" data-score="0">
+            <div class="strength-track">
+              <span class="strength-seg"></span><span class="strength-seg"></span>
+              <span class="strength-seg"></span><span class="strength-seg"></span>
+            </div>
+            <span class="strength-label">Use 8+ characters with a letter and a number.</span>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label" for="confirm_password">Confirm new password</label>
+          <div class="password-wrap">
+            <input class="input" type="password" id="confirm_password" name="confirm_password" required
+                   autocomplete="new-password" data-match-for="password">
+            <button type="button" class="password-toggle" data-password-toggle="confirm_password">Show</button>
+          </div>
+          <p id="confirm_password-hint" class="help"></p>
+        </div>
+        <div class="field mb-0">
+          <button type="submit" class="btn btn-primary">Update password</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h3 style="font-size:18px;letter-spacing:-0.5px">Remembered devices</h3>
+        <span class="badge badge-outline"><%= devices.length %> active</span>
+      </div>
+
+      <% if (devices.length) { %>
+        <div class="table-wrap card-flat" style="box-shadow:none">
+          <div class="table-scroll">
+            <table class="data">
+              <thead>
+                <tr><th>Device</th><th>Signed in</th><th>Expires</th></tr>
+              </thead>
+              <tbody>
+                <% devices.forEach(function (d) { %>
+                  <tr>
+                    <td class="ink" style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                      <%= d.user_agent || 'Unknown device' %>
+                    </td>
+                    <td><%= formatDateTime(d.created_at) %></td>
+                    <td><%= formatDateTime(d.expires_at) %></td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <form method="POST" action="/account/devices/revoke" class="mt-md">
+          <button type="submit" class="btn btn-danger btn-sm">Sign out of all devices</button>
+        </form>
+      <% } else { %>
+        <p class="small muted mb-0">
+          No devices are currently remembered. Tick &ldquo;Keep me logged in&rdquo; at login to stay
+          signed in on a device you trust.
+        </p>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

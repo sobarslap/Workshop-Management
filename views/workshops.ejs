@@ -1,0 +1,77 @@
+<%- include('partials/header') %>
+
+<div class="page">
+  <div class="container">
+    <div class="page-head">
+      <span class="eyebrow">Catalogue</span>
+      <h1>Upcoming workshops.</h1>
+      <p class="lead">Live availability and pricing. Seats are held for <%= seatHoldMinutes %> minutes once you start a booking.</p>
+    </div>
+
+    <form method="GET" action="/workshops" class="filterbar">
+      <div class="field field-grow">
+        <label class="label" for="q">Search</label>
+        <input class="input" type="search" id="q" name="q" value="<%= filters.q %>" placeholder="Title, topic, instructor or venue">
+      </div>
+
+      <div class="field">
+        <label class="label" for="level">Level</label>
+        <select class="select" id="level" name="level" data-autosubmit>
+          <option value="">Any level</option>
+          <% levels.forEach(function (lvl) { %>
+            <option value="<%= lvl %>" <%= filters.level === lvl ? 'selected' : '' %>><%= lvl %></option>
+          <% }); %>
+        </select>
+      </div>
+
+      <div class="field">
+        <label class="label" for="availability">Availability</label>
+        <select class="select" id="availability" name="availability" data-autosubmit>
+          <option value="">All</option>
+          <option value="available" <%= filters.availability === 'available' ? 'selected' : '' %>>Seats available</option>
+          <option value="limited" <%= filters.availability === 'limited' ? 'selected' : '' %>>Almost full</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label class="label" for="sort">Sort by</label>
+        <select class="select" id="sort" name="sort" data-autosubmit>
+          <option value="date" <%= filters.sort === 'date' ? 'selected' : '' %>>Soonest first</option>
+          <option value="price-asc" <%= filters.sort === 'price-asc' ? 'selected' : '' %>>Price: low to high</option>
+          <option value="price-desc" <%= filters.sort === 'price-desc' ? 'selected' : '' %>>Price: high to low</option>
+          <option value="seats" <%= filters.sort === 'seats' ? 'selected' : '' %>>Most seats left</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <button type="submit" class="btn btn-primary">Apply</button>
+      </div>
+      <% if (filters.q || filters.level || filters.availability) { %>
+        <div class="field"><a href="/workshops" class="btn btn-ghost">Clear</a></div>
+      <% } %>
+    </form>
+
+    <p class="small muted mb-md">
+      Showing <strong class="strong"><%= workshops.length %></strong> workshop<%= workshops.length === 1 ? '' : 's' %><% if (filters.q) { %> matching &ldquo;<%= filters.q %>&rdquo;<% } %>.
+    </p>
+
+    <% if (workshops.length) { %>
+      <div class="workshop-grid">
+        <% workshops.forEach(function (w) { %>
+          <%- include('partials/workshop-card', { w: w }) %>
+        <% }); %>
+      </div>
+    <% } else { %>
+      <div class="empty">
+        <h4>Nothing matches those filters</h4>
+        <p>Try widening your search, or register your interest and we will let you know when a suitable date opens.</p>
+        <div class="row" style="justify-content:center">
+          <a href="/workshops" class="btn btn-secondary">Clear filters</a>
+          <a href="/eoi" class="btn btn-primary">Express interest</a>
+        </div>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

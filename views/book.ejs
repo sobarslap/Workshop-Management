@@ -1,0 +1,104 @@
+<%- include('partials/header') %>
+<%
+  const remaining = Math.max(0, workshop.seats_remaining);
+  const low = remaining / workshop.capacity <= 0.25;
+%>
+
+<div class="page">
+  <div class="container">
+    <div class="page-head">
+      <span class="eyebrow">Step 2 of 3 &middot; Attendee details</span>
+      <h1>Who's attending?</h1>
+      <p class="lead">Booking for a colleague? Enter their details — the receipt still comes to you.</p>
+    </div>
+
+    <div class="checkout-grid">
+      <div>
+        <div class="card card-lg">
+          <form method="POST" action="/book/<%= workshop.id %>" class="stack" novalidate data-once>
+            <div class="grid-2">
+              <div class="field">
+                <label class="label" for="attendee_name">Attendee name <span class="req">*</span></label>
+                <input class="input" type="text" id="attendee_name" name="attendee_name" required
+                       value="<%= form.name || '' %>" placeholder="Ayesha Karim">
+              </div>
+              <div class="field">
+                <label class="label" for="attendee_email">Attendee email <span class="req">*</span></label>
+                <input class="input" type="email" id="attendee_email" name="attendee_email" required
+                       value="<%= form.email || '' %>" placeholder="ayesha@acme.com">
+                <p class="help">The confirmation and joining instructions go here.</p>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="field">
+                <label class="label" for="attendee_phone">Phone <span class="label-hint">(optional)</span></label>
+                <input class="input" type="tel" id="attendee_phone" name="attendee_phone" value="<%= form.phone || '' %>">
+              </div>
+              <div class="field">
+                <label class="label" for="attendee_company">Company <span class="label-hint">(optional)</span></label>
+                <input class="input" type="text" id="attendee_company" name="attendee_company" value="<%= form.company || '' %>">
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label" for="attendee_notes">
+                Dietary or access requirements <span class="label-hint">(optional)</span>
+              </label>
+              <textarea class="textarea" id="attendee_notes" name="attendee_notes" style="min-height:80px"
+                        placeholder="Vegetarian lunch, wheelchair access, anything else we should arrange…"></textarea>
+            </div>
+
+            <div class="field mb-0">
+              <button type="submit" class="btn btn-primary btn-lg" data-busy="Reserving your seat…">
+                Reserve seat &amp; continue to payment
+              </button>
+            </div>
+
+            <p class="help mb-0">
+              Reserving does not charge you. Your seat is held for <%= seatHoldMinutes %> minutes
+              while you complete payment on the next screen.
+            </p>
+          </form>
+        </div>
+
+        <p class="small mt-md">
+          <a href="/workshops/<%= workshop.id %>" class="muted">&larr; Back to workshop details</a>
+        </p>
+      </div>
+
+      <aside>
+        <div class="card card-raised summary">
+          <span class="eyebrow" style="margin-bottom:10px">Your booking</span>
+          <h3 style="font-size:17px;letter-spacing:-0.4px;margin-bottom:12px"><%= workshop.title %></h3>
+
+          <dl style="margin:0">
+            <div class="summary-line"><dt>Date</dt><dd><%= formatDate(workshop.workshop_date) %></dd></div>
+            <% if (workshop.start_time) { %>
+              <div class="summary-line"><dt>Time</dt><dd><%= workshop.start_time %> – <%= workshop.end_time %></dd></div>
+            <% } %>
+            <% if (workshop.location) { %>
+              <div class="summary-line"><dt>Location</dt><dd style="max-width:180px"><%= workshop.location %></dd></div>
+            <% } %>
+            <div class="summary-line"><dt>Seats</dt><dd>1 seat</dd></div>
+            <div class="summary-line"><dt>Seats left</dt>
+              <dd><span class="badge <%= low ? 'badge-pending' : 'badge-paid' %>"><%= remaining %> of <%= workshop.capacity %></span></dd>
+            </div>
+          </dl>
+
+          <div class="summary-total">
+            <span class="small muted">Total due</span>
+            <span class="price"><%= money(workshop.price) %></span>
+          </div>
+
+          <div class="hold-note">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            <span>Seats are limited to <%= workshop.capacity %> for this date. Once they're gone, booking closes.</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

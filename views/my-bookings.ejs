@@ -1,0 +1,113 @@
+<%- include('partials/header') %>
+
+<div class="page">
+  <div class="container">
+    <div class="page-head">
+      <span class="eyebrow">Your account</span>
+      <h1>Your bookings.</h1>
+      <p class="lead">Every seat you've reserved, with its live payment status.</p>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat">
+        <span class="stat-k">Total bookings</span>
+        <div class="stat-v"><%= summary.total %></div>
+      </div>
+      <div class="stat">
+        <span class="stat-k">Confirmed</span>
+        <div class="stat-v"><%= summary.paid %></div>
+        <span class="stat-sub">paid in full</span>
+      </div>
+      <div class="stat">
+        <span class="stat-k">Awaiting payment</span>
+        <div class="stat-v"><%= summary.pending %></div>
+        <% if (summary.pending) { %><span class="stat-sub" style="color:var(--warning-deep)">seat holds expiring</span><% } %>
+      </div>
+      <div class="stat">
+        <span class="stat-k">Total spent</span>
+        <div class="stat-v" style="font-size:22px"><%= money(summary.spent) %></div>
+      </div>
+    </div>
+
+    <% if (bookings.length) { %>
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table class="data">
+            <thead>
+              <tr>
+                <th>Workshop</th>
+                <th>Date</th>
+                <th>Attendee</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th class="right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% bookings.forEach(function (b) {
+                   const minutesLeft = holdMinutesLeft(b);
+              %>
+                <tr>
+                  <td class="ink">
+                    <%= b.title %>
+                    <div class="small muted mono" style="font-size:11px"><%= b.tran_id %></div>
+                  </td>
+                  <td>
+                    <%= formatDate(b.workshop_date) %>
+                    <div class="small muted"><%= relativeDays(b.workshop_date) %></div>
+                  </td>
+                  <td>
+                    <%= b.attendee_name %>
+                    <div class="small muted"><%= b.attendee_email %></div>
+                  </td>
+                  <td class="ink"><%= money(b.amount, b.currency) %></td>
+                  <td>
+                    <span class="badge <%= statusClass(b.payment_status) %>">
+                      <span class="dot"></span><%= b.payment_status %>
+                    </span>
+                    <% if (b.payment_status === 'Pending' && minutesLeft > 0) { %>
+                      <div class="small muted" style="margin-top:4px">
+                        holds <span class="mono" data-hold-minutes="<%= minutesLeft %>"><%= minutesLeft %>:00</span>
+                      </div>
+                    <% } %>
+                  </td>
+                  <td class="right">
+                    <div class="row" style="justify-content:flex-end;gap:6px">
+                      <% if (b.payment_status === 'Paid') { %>
+                        <a href="/booking/<%= b.id %>/confirmation" class="btn btn-secondary btn-sm">View</a>
+                        <a href="/booking/<%= b.id %>/receipt" class="btn btn-ghost btn-sm">Receipt</a>
+                      <% } else if (b.payment_status === 'Pending') { %>
+                        <a href="/booking/<%= b.id %>/pay" class="btn btn-primary btn-sm">Pay now</a>
+                        <form method="POST" action="/booking/<%= b.id %>/release" class="inline-form"
+                              onsubmit="return confirm('Cancel this booking and release the seat?')">
+                          <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--error-deep)">Cancel</button>
+                        </form>
+                      <% } else if (b.workshop_status === 'active') { %>
+                        <a href="/booking/<%= b.id %>/pay" class="btn btn-secondary btn-sm">Retry</a>
+                      <% } else { %>
+                        <span class="small muted">—</span>
+                      <% } %>
+                    </div>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <p class="help mt-md">
+        Unpaid seat holds are released automatically after <%= seatHoldMinutes %> minutes so other
+        people can book. You can always start a new booking if seats remain.
+      </p>
+    <% } else { %>
+      <div class="empty">
+        <h4>No bookings yet</h4>
+        <p>Once you reserve a seat it appears here with its payment status and receipt.</p>
+        <a href="/workshops" class="btn btn-primary">Browse workshops</a>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,62 @@
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <a href="/" class="brand">
+            <span class="brand-mark" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.4" stroke-linecap="round">
+                <path d="M4 7h16M4 12h16M4 17h9"/>
+              </svg>
+            </span>
+            <%= brand.name %>
+          </a>
+          <p class="footer-blurb"><%= brand.tagline %> Instructor-led training for teams across Bangladesh, delivered on site or online.</p>
+        </div>
+
+        <div>
+          <h5>Training</h5>
+          <ul>
+            <li><a href="/workshops">All workshops</a></li>
+            <li><a href="/workshops?availability=available">Seats available</a></li>
+            <li><a href="/eoi">Express interest</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h5>Account</h5>
+          <ul>
+            <% if (currentUser) { %>
+              <li><a href="/my-bookings">My bookings</a></li>
+              <li><a href="/account">Account settings</a></li>
+            <% } else { %>
+              <li><a href="/login">Log in</a></li>
+              <li><a href="/register">Create an account</a></li>
+              <li><a href="/forgot-password">Reset password</a></li>
+            <% } %>
+          </ul>
+        </div>
+
+        <div>
+          <h5>Contact</h5>
+          <ul>
+            <li><a href="mailto:<%= brand.supportEmail %>"><%= brand.supportEmail %></a></li>
+            <li><span class="muted small"><%= brand.supportPhone %></span></li>
+            <li><span class="muted small">Dhaka, Bangladesh</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span>&copy; <%= new Date().getFullYear() %> <%= brand.name %> Ltd. All rights reserved.</span>
+        <span>
+          Payments secured by <strong class="strong"><%= gateway.label %></strong><% if (gateway.isSandbox) { %> <span class="badge badge-outline">test mode</span><% } %>
+        </span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<%- include('partials/header') %>
+
+<div class="page" style="position:relative;overflow:hidden">
+  <div class="mesh mesh-sm" aria-hidden="true"></div>
+  <div class="container page-narrow" style="position:relative;z-index:1">
+    <div class="result">
+      <div class="result-icon is-good">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+      </div>
+
+      <h1>Thanks, <%= name.split(' ')[0] %>.</h1>
+      <p>
+        Your expression of interest has been recorded and an acknowledgment is on its way to
+        <strong class="strong"><%= email %></strong>. A training advisor will follow up within one business day.
+      </p>
+
+      <div class="ticket">
+        <div class="ticket-head">
+          <span class="eyebrow" style="margin-bottom:6px">Enquiry summary</span>
+          <h3 style="margin:0"><%= workshop.title %></h3>
+        </div>
+        <div class="ticket-body">
+          <dl class="kv">
+            <dt>Date</dt>
+            <dd><%= formatDate(workshop.workshop_date) %></dd>
+            <dt>Price per seat</dt>
+            <dd><%= money(workshop.price) %></dd>
+            <dt>Your name</dt>
+            <dd><%= name %></dd>
+            <dt>Reply to</dt>
+            <dd><%= email %></dd>
+          </dl>
+        </div>
+      </div>
+
+      <div class="row mt-lg" style="justify-content:center">
+        <a href="/workshops/<%= workshop.id %>" class="btn btn-primary">Book a seat now</a>
+        <a href="/workshops" class="btn btn-secondary">Browse other workshops</a>
+      </div>
+
+      <p class="help mt-lg">
+        Nothing in your inbox after a few minutes? Check your spam folder, or email
+        <a href="mailto:<%= brand.supportEmail %>"><%= brand.supportEmail %></a>.
+      </p>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

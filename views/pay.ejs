@@ -1,0 +1,155 @@
+<%- include('partials/header') %>
+<% const minutesLeft = holdMinutesLeft(booking); %>
+
+<div class="page">
+  <div class="container">
+    <div class="page-head">
+      <span class="eyebrow">Step 3 of 3 &middot; Payment</span>
+      <h1>Complete your payment.</h1>
+      <p class="lead">You'll be taken to <%= gateway.label %> to pay securely, then brought straight back here.</p>
+    </div>
+
+    <div class="checkout-grid">
+      <div>
+        <div class="card card-lg">
+          <div class="pay-method mb-md">
+            <span class="pay-logo">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+            </span>
+            <div style="flex:1">
+              <div class="strong" style="font-size:15px"><%= gateway.label %></div>
+              <div class="small muted"><%= gateway.description %></div>
+            </div>
+            <% if (gateway.isSandbox) { %>
+              <span class="badge badge-pending">Test mode</span>
+            <% } else { %>
+              <span class="badge badge-paid"><span class="dot"></span>Live</span>
+            <% } %>
+          </div>
+
+          <% if (gateway.isSandbox) { %>
+            <div class="alert alert-warning">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+              <span>
+                <strong>Test mode.</strong> No real money moves. The checkout page lets you simulate
+                a successful payment, a bank decline, or a cancellation so every path can be demonstrated.
+              </span>
+            </div>
+          <% } else if (gateway.id === 'bkash' && !gateway.isLive) { %>
+            <div class="alert alert-warning">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+              <span>
+                <strong>bKash sandbox.</strong> No real money moves. Use a test wallet below —
+                PIN <code>12121</code>, OTP <code>123456</code>.
+              </span>
+            </div>
+            <div class="card card-soft mb-md">
+              <span class="eyebrow" style="margin-bottom:10px">Sandbox test wallets</span>
+              <div class="cred-list">
+                <div class="cred"><span>Successful payment</span><span class="mono">01770618576</span></div>
+                <div class="cred"><span>Successful payment</span><span class="mono">01929918378</span></div>
+                <div class="cred"><span>Insufficient balance</span><span class="mono">01823074817</span></div>
+                <div class="cred"><span>Debit blocked</span><span class="mono">01823074818</span></div>
+              </div>
+              <p class="help mb-0">
+                The two failing wallets are the quickest way to show how a declined payment is handled.
+              </p>
+            </div>
+          <% } else if (gateway.id === 'sslcommerz' && !gateway.isLive) { %>
+            <div class="alert alert-warning">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+              <span>
+                <strong>SSLCommerz sandbox.</strong> No real money moves. Pick any method on the
+                gateway page — the sandbox accepts its own prefilled test cards.
+              </span>
+            </div>
+          <% } %>
+
+          <% if (booking.payment_status !== 'Pending') { %>
+            <div class="alert alert-error">
+              <span>
+                <strong>Last attempt <%= booking.payment_status.toLowerCase() %>.</strong>
+                <%= booking.payment_note || 'You can try again below — a fresh transaction will be created.' %>
+              </span>
+            </div>
+          <% } %>
+
+          <form method="POST" action="/booking/<%= booking.id %>/checkout" data-once>
+            <button type="submit" class="btn btn-primary btn-lg btn-block" data-busy="Opening secure checkout…">
+              Pay <%= money(booking.amount, booking.currency) %> with <%= gateway.label %>
+            </button>
+          </form>
+
+          <div class="trust-row" style="justify-content:center">
+            <span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>
+              Encrypted connection
+            </span>
+            <span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/></svg>
+              Verified server-side
+            </span>
+            <span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 4h16v12H5.2L4 18V4z"/></svg>
+              Emailed receipt
+            </span>
+          </div>
+
+          <hr>
+
+          <p class="small muted mb-0">
+            We never see or store your card or wallet credentials — they are entered on
+            <%= gateway.label %>'s own page. When you return, we confirm the payment directly with
+            the gateway before marking your seat as paid.
+          </p>
+        </div>
+
+        <div class="row mt-md">
+          <a href="/my-bookings" class="btn btn-ghost btn-sm">Pay later</a>
+          <form method="POST" action="/booking/<%= booking.id %>/release" class="inline-form"
+                onsubmit="return confirm('Cancel this booking and release the seat?')">
+            <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--error-deep)">Cancel booking</button>
+          </form>
+        </div>
+      </div>
+
+      <aside>
+        <div class="card card-raised summary">
+          <span class="eyebrow" style="margin-bottom:10px">Order summary</span>
+          <h3 style="font-size:17px;letter-spacing:-0.4px;margin-bottom:4px"><%= booking.title %></h3>
+          <p class="small muted" style="margin-bottom:14px"><%= formatDate(booking.workshop_date) %></p>
+
+          <dl style="margin:0">
+            <div class="summary-line"><dt>Attendee</dt><dd><%= booking.attendee_name %></dd></div>
+            <div class="summary-line"><dt>Seat price</dt><dd><%= money(booking.amount, booking.currency) %></dd></div>
+            <div class="summary-line"><dt>Quantity</dt><dd>1</dd></div>
+            <div class="summary-line"><dt>Booking fee</dt><dd>&mdash;</dd></div>
+          </dl>
+
+          <div class="summary-total">
+            <span class="small muted">Total</span>
+            <span class="price"><%= money(booking.amount, booking.currency) %></span>
+          </div>
+
+          <% if (booking.payment_status === 'Pending' && minutesLeft > 0) { %>
+            <div class="hold-note">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              <span>
+                Seat held for
+                <strong class="mono" data-hold-minutes="<%= minutesLeft %>"><%= minutesLeft %>:00</strong>.
+                After that it returns to general sale.
+              </span>
+            </div>
+          <% } %>
+
+          <p class="small muted mt-md mb-0">
+            Reference<br>
+            <span class="ticket-ref" style="margin-top:4px"><%= booking.tran_id %></span>
+          </p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

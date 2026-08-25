@@ -1,0 +1,174 @@
+<%- include('partials/header') %>
+
+<section class="hero">
+  <div class="mesh" aria-hidden="true"></div>
+  <div class="container">
+    <div class="hero-inner">
+      <a href="/workshops" class="announce">
+        <span class="badge badge-info">New</span>
+        <%= stats.upcoming %> workshops open for booking
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg>
+      </a>
+
+      <h1>Train your team.<br><span class="grad-text">Book it in minutes.</span></h1>
+
+      <p class="hero-lead">
+        Instructor-led corporate workshops with live seat counts, instant confirmation
+        and secure online payment. No back-and-forth email, no held invoices.
+      </p>
+
+      <div class="hero-cta">
+        <a href="/workshops" class="btn btn-primary btn-pill">Browse workshops</a>
+        <a href="/eoi" class="btn btn-secondary btn-pill">Express interest</a>
+      </div>
+    </div>
+
+    <div class="stat-strip">
+      <div>
+        <div class="stat-num"><%= stats.upcoming %></div>
+        <div class="stat-label">Upcoming dates</div>
+      </div>
+      <div>
+        <div class="stat-num"><%= stats.seats %></div>
+        <div class="stat-label">Seats available now</div>
+      </div>
+      <div>
+        <div class="stat-num"><%= stats.delivered %></div>
+        <div class="stat-label">Seats confirmed</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Next up</span>
+      <h2>Workshops open for booking.</h2>
+      <p>Seat counts update the moment someone books, so what you see is what is actually left.</p>
+    </div>
+
+    <% if (workshops.length) { %>
+      <div class="workshop-grid">
+        <% workshops.forEach(function (w) { %>
+          <%- include('partials/workshop-card', { w: w }) %>
+        <% }); %>
+      </div>
+      <div class="row mt-lg">
+        <a href="/workshops" class="btn btn-secondary">See all workshops</a>
+      </div>
+    <% } else { %>
+      <div class="empty">
+        <h4>No workshops scheduled yet</h4>
+        <p>New dates are added regularly. Register your interest and we will email you as soon as one opens.</p>
+        <a href="/eoi" class="btn btn-primary">Express interest</a>
+      </div>
+    <% } %>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">How it works</span>
+      <h2>Four steps from interested to booked.</h2>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <span class="step-num">01</span>
+        <h4>Register your interest</h4>
+        <p>Tell us which workshop suits you. An acknowledgment lands in your inbox straight away.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">02</span>
+        <h4>Create an account</h4>
+        <p>Booking requires a login, so your seats, receipts and payment history stay in one place.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">03</span>
+        <h4>Pick a date</h4>
+        <p>Confirm the attendee's details. Your seat is held for <%= seatHoldMinutes %> minutes while you pay.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">04</span>
+        <h4>Pay and you're in</h4>
+        <p>Pay securely through <%= gateway.label %>. A confirmation and receipt arrive by email.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Why book here</span>
+      <h2>Built for the people who organise training.</h2>
+    </div>
+
+    <div class="features">
+      <div class="feature">
+        <span class="feature-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg>
+        </span>
+        <h4>Real capacity limits</h4>
+        <p>Every date has a hard seat cap. Once it is reached, booking closes automatically — no overselling a room.</p>
+      </div>
+      <div class="feature">
+        <span class="feature-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+        </span>
+        <h4>Verified payments</h4>
+        <p>Every payment is confirmed server-to-server with the gateway before a seat is marked paid.</p>
+      </div>
+      <div class="feature">
+        <span class="feature-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 9v11"/></svg>
+        </span>
+        <h4>One place for everything</h4>
+        <p>Bookings, payment status and downloadable receipts sit together in your account.</p>
+      </div>
+      <div class="feature">
+        <span class="feature-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </span>
+        <h4>Live seat counts</h4>
+        <p>Unpaid holds expire after <%= seatHoldMinutes %> minutes and return to the pool, so listings stay honest.</p>
+      </div>
+      <div class="feature">
+        <span class="feature-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H5.2L4 18V4z"/></svg>
+        </span>
+        <h4>Automatic acknowledgments</h4>
+        <p>Interest forms and bookings both trigger an email immediately — nobody is left wondering.</p>
+      </div>
+      <div class="feature">
+        <span class="feature-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/></svg>
+        </span>
+        <h4>Group bookings welcome</h4>
+        <p>Booking for someone else? Enter their details at checkout — the receipt still comes to you.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="container">
+    <div class="band-dark">
+      <div class="row-between">
+        <div style="max-width:520px">
+          <span class="eyebrow" style="color:#8f8f8f">Bespoke training</span>
+          <h2 style="margin-bottom:12px">Need something built for your team?</h2>
+          <p style="margin:0;color:#a3a3a3">
+            Tell us the outcome you want and the size of the group. We will design the
+            content, pick the instructor, and run it at your office or online.
+          </p>
+        </div>
+        <a href="/eoi" class="btn btn-secondary btn-pill">Start a conversation</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

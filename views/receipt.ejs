@@ -1,0 +1,88 @@
+<%- include('partials/header') %>
+
+<div class="page">
+  <div class="container page-narrow">
+    <div class="row-between no-print mb-lg">
+      <a href="/booking/<%= booking.id %>/confirmation" class="small muted">&larr; Back to confirmation</a>
+      <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">Print / save as PDF</button>
+    </div>
+
+    <div class="card card-lg">
+      <div class="grad-rule mb-lg"></div>
+
+      <div class="row-between mb-lg" style="align-items:flex-start">
+        <div>
+          <h2 style="font-size:26px;margin-bottom:4px">Receipt</h2>
+          <p class="small muted mb-0">
+            <%= booking.paid_at ? formatDateTime(booking.paid_at) : formatDateTime(booking.created_at) %>
+          </p>
+        </div>
+        <div style="text-align:right">
+          <div class="strong" style="font-size:15px"><%= brand.name %> Ltd.</div>
+          <div class="small muted">Dhaka, Bangladesh</div>
+          <div class="small muted"><%= brand.supportEmail %></div>
+        </div>
+      </div>
+
+      <dl class="kv">
+        <dt>Receipt number</dt>
+        <dd class="mono" style="font-size:13px"><%= booking.tran_id %></dd>
+
+        <dt>Billed to</dt>
+        <dd><%= booking.attendee_name %><br><span class="muted small"><%= booking.attendee_email %></span></dd>
+
+        <% if (booking.attendee_company) { %>
+          <dt>Company</dt>
+          <dd><%= booking.attendee_company %></dd>
+        <% } %>
+
+        <dt>Payment status</dt>
+        <dd><span class="badge <%= statusClass(booking.payment_status) %>"><%= booking.payment_status %></span></dd>
+
+        <% if (booking.card_type) { %>
+          <dt>Method</dt>
+          <dd><%= booking.card_type %></dd>
+        <% } %>
+
+        <% if (booking.bank_tran_id) { %>
+          <dt>Gateway transaction</dt>
+          <dd class="mono" style="font-size:13px"><%= booking.bank_tran_id %></dd>
+        <% } %>
+      </dl>
+
+      <div class="table-wrap card-flat mt-lg" style="box-shadow:none">
+        <table class="data">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th class="right">Qty</th>
+              <th class="right">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="ink">
+                <%= booking.title %>
+                <div class="small muted"><%= formatDate(booking.workshop_date) %><%= booking.location ? ' · ' + booking.location : '' %></div>
+              </td>
+              <td class="right">1</td>
+              <td class="right ink"><%= money(booking.amount, booking.currency) %></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="summary-total" style="margin-top:16px">
+        <span class="strong">Total <%= booking.payment_status === 'Paid' ? 'paid' : 'due' %></span>
+        <span class="price"><%= money(booking.amount, booking.currency) %></span>
+      </div>
+
+      <p class="help mt-lg mb-0">
+        This receipt was generated automatically. VAT is not charged on training services under
+        the current exemption. Keep this document for your records.
+      </p>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

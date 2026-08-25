@@ -1,0 +1,341 @@
+<%- include('partials/header') %>
+<%
+  const qs = new URLSearchParams(Object.entries(filters).filter(function (e) { return e[1]; })).toString();
+%>
+
+<div class="page">
+  <div class="container">
+    <div class="row-between mb-lg">
+      <div>
+        <span class="eyebrow">Administration</span>
+        <h1 style="font-size:38px;letter-spacing:-1.8px;margin-bottom:4px">Dashboard.</h1>
+        <p class="small muted mb-0">
+          Signed in as <%= currentUser.email %> ·
+          Payments via <strong class="strong"><%= gateway.label %></strong><% if (gateway.isSandbox) { %> <span class="badge badge-pending">test mode</span><% } %>
+        </p>
+      </div>
+      <div class="row">
+        <a href="/admin/workshops/new" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+          New workshop
+        </a>
+      </div>
+    </div>
+
+    <% if (gateway.fellBack) { %>
+      <div class="alert alert-warning mb-lg">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        <span>
+          <strong><%= gateway.requested %> is not configured</strong>, so the built-in sandbox gateway is
+          handling payments instead. <%= gateway.fallbackReason %>
+        </span>
+      </div>
+    <% } %>
+
+    <!-- ============ STATS ============ -->
+    <div class="stat-grid">
+      <div class="stat">
+        <span class="stat-k">Revenue collected</span>
+        <div class="stat-v" style="font-size:24px"><%= money(stats.revenue) %></div>
+        <span class="stat-sub"><%= stats.paidBookings %> paid booking<%= stats.paidBookings === 1 ? '' : 's' %></span>
+      </div>
+      <div class="stat">
+        <span class="stat-k">Bookings</span>
+        <div class="stat-v"><%= stats.totalBookings %></div>
+        <span class="stat-sub"><%= stats.conversion %>% converted to paid</span>
+      </div>
+      <div class="stat">
+        <span class="stat-k">Awaiting payment</span>
+        <div class="stat-v"><%= stats.pendingBookings %></div>
+        <span class="stat-sub"><%= stats.failedBookings %> failed / cancelled</span>
+      </div>
+      <div class="stat">
+        <span class="stat-k">Expressions of interest</span>
+        <div class="stat-v"><%= stats.eoiCount %></div>
+        <% if (stats.newEoi) { %>
+          <span class="stat-sub" style="color:var(--warning-deep)"><%= stats.newEoi %> awaiting response</span>
+        <% } else { %>
+          <span class="stat-sub">all responded to</span>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- ============ TABS ============ -->
+    <nav class="tabs">
+      <a href="/admin/dashboard?tab=bookings" class="tab <%= tab === 'bookings' ? 'is-active' : '' %>">
+        Registrations <span class="badge badge-outline"><%= stats.totalBookings %></span>
+      </a>
+      <a href="/admin/dashboard?tab=workshops" class="tab <%= tab === 'workshops' ? 'is-active' : '' %>">
+        Workshops <span class="badge badge-outline"><%= stats.activeWorkshops %></span>
+      </a>
+      <a href="/admin/dashboard?tab=eoi" class="tab <%= tab === 'eoi' ? 'is-active' : '' %>">
+        Enquiries <% if (stats.newEoi) { %><span class="badge badge-pending"><%= stats.newEoi %> new</span><% } else { %><span class="badge badge-outline"><%= stats.eoiCount %></span><% } %>
+      </a>
+    </nav>
+
+    <!-- ============ TAB: REGISTRATIONS ============ -->
+    <% if (tab === 'bookings') { %>
+      <form method="GET" action="/admin/dashboard" class="filterbar">
+        <input type="hidden" name="tab" value="bookings">
+
+        <div class="field field-grow">
+          <label class="label" for="q">Search</label>
+          <input class="input" type="search" id="q" name="q" value="<%= filters.q %>"
+                 placeholder="Attendee, email, company or reference">
+        </div>
+
+        <div class="field">
+          <label class="label" for="workshop_id">Workshop</label>
+          <select class="select" id="workshop_id" name="workshop_id" data-autosubmit>
+            <option value="">All workshops</option>
+            <% workshops.forEach(function (w) { %>
+              <option value="<%= w.id %>" <%= String(filters.workshop_id) === String(w.id) ? 'selected' : '' %>><%= w.title %></option>
+            <% }); %>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="date">Date</label>
+          <select class="select" id="date" name="date" data-autosubmit>
+            <option value="">Any date</option>
+            <% workshopDates.forEach(function (d) { %>
+              <option value="<%= d %>" <%= filters.date === d ? 'selected' : '' %>><%= formatDate(d) %></option>
+            <% }); %>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="status">Payment</label>
+          <select class="select" id="status" name="status" data-autosubmit>
+            <option value="">All statuses</option>
+            <% ['Pending','Paid','Failed','Cancelled','Expired','Refunded'].forEach(function (s) { %>
+              <option value="<%= s %>" <%= filters.status === s ? 'selected' : '' %>><%= s %></option>
+            <% }); %>
+          </select>
+        </div>
+
+        <div class="field"><button type="submit" class="btn btn-primary">Filter</button></div>
+        <div class="field"><a href="/admin/dashboard?tab=bookings" class="btn btn-ghost">Reset</a></div>
+      </form>
+
+      <div class="row-between mb-md">
+        <p class="small muted mb-0"><strong class="strong"><%= bookings.length %></strong> registration<%= bookings.length === 1 ? '' : 's' %> matching.</p>
+        <a href="/admin/bookings.csv<%= qs ? '?' + qs : '' %>" class="btn btn-secondary btn-sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Export CSV
+        </a>
+      </div>
+
+      <% if (bookings.length) { %>
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <table class="data">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Attendee</th>
+                  <th>Workshop</th>
+                  <th>Date</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Booked</th>
+                  <th class="right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% bookings.forEach(function (b) { %>
+                  <tr>
+                    <td class="mono"><%= b.id %></td>
+                    <td class="ink">
+                      <%= b.attendee_name || b.user_name %>
+                      <div class="small muted"><%= b.attendee_email || b.user_email %></div>
+                      <% if (b.attendee_company) { %><div class="small muted"><%= b.attendee_company %></div><% } %>
+                    </td>
+                    <td><%= b.title %></td>
+                    <td class="nowrap"><%= formatDate(b.workshop_date) %></td>
+                    <td class="ink nowrap"><%= money(b.amount, b.currency) %></td>
+                    <td>
+                      <span class="badge <%= statusClass(b.payment_status) %>">
+                        <span class="dot"></span><%= b.payment_status %>
+                      </span>
+                    </td>
+                    <td class="small muted nowrap"><%= formatDateTime(b.created_at) %></td>
+                    <td class="right">
+                      <div class="row" style="justify-content:flex-end;gap:6px">
+                        <a href="/admin/bookings/<%= b.id %>" class="btn btn-secondary btn-sm">Details</a>
+                        <form method="POST" action="/admin/bookings/<%= b.id %>/status" class="inline-form">
+                          <select name="payment_status" class="select" style="height:30px;font-size:12px;padding:0 26px 0 8px;width:auto"
+                                  onchange="this.form.submit()" aria-label="Change payment status">
+                            <% ['Pending','Paid','Failed','Cancelled','Expired','Refunded'].forEach(function (s) { %>
+                              <option value="<%= s %>" <%= b.payment_status === s ? 'selected' : '' %>><%= s %></option>
+                            <% }); %>
+                          </select>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      <% } else { %>
+        <div class="empty">
+          <h4>No registrations match those filters</h4>
+          <p>Try clearing the filters, or check a different workshop date.</p>
+          <a href="/admin/dashboard?tab=bookings" class="btn btn-secondary">Reset filters</a>
+        </div>
+      <% } %>
+    <% } %>
+
+    <!-- ============ TAB: WORKSHOPS ============ -->
+    <% if (tab === 'workshops') { %>
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table class="data">
+            <thead>
+              <tr>
+                <th>Workshop</th>
+                <th>Date</th>
+                <th>Capacity</th>
+                <th>Booked</th>
+                <th>Paid</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th class="right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% workshops.forEach(function (w) {
+                   const remaining = Math.max(0, w.seats_remaining);
+                   const pct = w.capacity > 0 ? Math.round((w.seats_taken / w.capacity) * 100) : 0;
+              %>
+                <tr>
+                  <td class="ink">
+                    <%= w.title %>
+                    <% if (w.instructor) { %><div class="small muted"><%= w.instructor %></div><% } %>
+                  </td>
+                  <td class="nowrap">
+                    <%= formatDate(w.workshop_date) %>
+                    <div class="small muted"><%= relativeDays(w.workshop_date) %></div>
+                  </td>
+                  <td><%= w.capacity %></td>
+                  <td style="min-width:120px">
+                    <div class="meter" style="margin-bottom:4px">
+                      <div class="meter-fill <%= remaining <= 0 ? 'is-full' : (remaining / w.capacity <= 0.25 ? 'is-low' : '') %>" style="width:<%= Math.min(100, pct) %>%"></div>
+                    </div>
+                    <span class="small muted"><%= w.seats_taken %> held · <%= remaining %> left</span>
+                  </td>
+                  <td class="ink"><%= w.paid_count %></td>
+                  <td class="nowrap"><%= money(w.price) %></td>
+                  <td>
+                    <% if (w.status === 'active') { %>
+                      <span class="badge badge-paid"><span class="dot"></span>Active</span>
+                    <% } else { %>
+                      <span class="badge badge-neutral">Cancelled</span>
+                    <% } %>
+                  </td>
+                  <td class="right">
+                    <div class="row" style="justify-content:flex-end;gap:6px">
+                      <a href="/admin/workshops/<%= w.id %>/edit" class="btn btn-secondary btn-sm">Edit</a>
+                      <a href="/admin/workshops/<%= w.id %>/attendees.csv" class="btn btn-ghost btn-sm">Roster</a>
+                      <% if (w.status === 'active') { %>
+                        <form method="POST" action="/admin/workshops/<%= w.id %>/cancel" class="inline-form"
+                              onsubmit="return confirm('Cancel this workshop? Everyone holding a seat will be emailed.')">
+                          <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
+                        </form>
+                      <% } else { %>
+                        <form method="POST" action="/admin/workshops/<%= w.id %>/reactivate" class="inline-form">
+                          <button type="submit" class="btn btn-secondary btn-sm">Re-activate</button>
+                        </form>
+                      <% } %>
+                    </div>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <p class="help mt-md">
+        Capacity cannot be lowered below the number of seats already held or paid for.
+        Cancelling a workshop removes it from the public listing and emails everyone booked on it.
+      </p>
+    <% } %>
+
+    <!-- ============ TAB: ENQUIRIES ============ -->
+    <% if (tab === 'eoi') { %>
+      <div class="row-between mb-md">
+        <p class="small muted mb-0"><strong class="strong"><%= eois.length %></strong> expression<%= eois.length === 1 ? '' : 's' %> of interest.</p>
+        <a href="/admin/eoi.csv" class="btn btn-secondary btn-sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Export CSV
+        </a>
+      </div>
+
+      <% if (eois.length) { %>
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <table class="data">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Contact</th>
+                  <th>Company</th>
+                  <th>Interested in</th>
+                  <th>Message</th>
+                  <th>Received</th>
+                  <th class="right">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% eois.forEach(function (e) { %>
+                  <tr>
+                    <td class="mono"><%= e.id %></td>
+                    <td class="ink">
+                      <%= e.name %>
+                      <div class="small muted"><a href="mailto:<%= e.email %>"><%= e.email %></a></div>
+                      <% if (e.phone) { %><div class="small muted"><%= e.phone %></div><% } %>
+                    </td>
+                    <td><%= e.company || '—' %></td>
+                    <td><%= e.workshop_title || '—' %></td>
+                    <td style="max-width:260px">
+                      <% if (e.message) { %>
+                        <span class="small"><%= e.message %></span>
+                      <% } else { %>
+                        <span class="small muted">—</span>
+                      <% } %>
+                    </td>
+                    <td class="small muted nowrap"><%= formatDateTime(e.created_at) %></td>
+                    <td class="right">
+                      <form method="POST" action="/admin/eoi/<%= e.id %>/status" class="inline-form">
+                        <select name="status" class="select" style="height:30px;font-size:12px;padding:0 26px 0 8px;width:auto"
+                                onchange="this.form.submit()" aria-label="Change enquiry status">
+                          <% ['New','Contacted','Converted','Closed'].forEach(function (s) { %>
+                            <option value="<%= s %>" <%= (e.status || 'New') === s ? 'selected' : '' %>><%= s %></option>
+                          <% }); %>
+                        </select>
+                      </form>
+                      <% if (e.handled_by) { %>
+                        <div class="small muted" style="margin-top:4px">by <%= e.handled_by.split('@')[0] %></div>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      <% } else { %>
+        <div class="empty">
+          <h4>No enquiries yet</h4>
+          <p>Expressions of interest submitted through the public form will appear here.</p>
+          <a href="/eoi" class="btn btn-secondary">View the public form</a>
+        </div>
+      <% } %>
+    <% } %>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

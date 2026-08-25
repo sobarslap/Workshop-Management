@@ -1,0 +1,137 @@
+<%- include('partials/header') %>
+
+<div class="page">
+  <div class="container">
+    <p class="small mb-md">
+      <a href="/admin/dashboard?tab=bookings" class="muted">&larr; Back to registrations</a>
+    </p>
+
+    <div class="row-between mb-lg">
+      <div>
+        <span class="eyebrow">Booking #<%= booking.id %></span>
+        <h1 style="font-size:34px;letter-spacing:-1.5px;margin-bottom:6px"><%= booking.title %></h1>
+        <p class="small muted mb-0"><%= formatDate(booking.workshop_date) %> · <%= booking.attendee_name %></p>
+      </div>
+      <span class="badge <%= statusClass(booking.payment_status) %>" style="font-size:13px;padding:6px 14px">
+        <span class="dot"></span><%= booking.payment_status %>
+      </span>
+    </div>
+
+    <div class="checkout-grid">
+      <div>
+        <div class="card mb-md">
+          <div class="card-head">
+            <h3 style="font-size:18px;letter-spacing:-0.5px">Attendee</h3>
+          </div>
+          <dl class="kv">
+            <dt>Name</dt><dd><%= booking.attendee_name %></dd>
+            <dt>Email</dt><dd><a href="mailto:<%= booking.attendee_email %>"><%= booking.attendee_email %></a></dd>
+            <dt>Phone</dt><dd><%= booking.attendee_phone || '—' %></dd>
+            <dt>Company</dt><dd><%= booking.attendee_company || '—' %></dd>
+            <% if (booking.attendee_notes) { %>
+              <dt>Requirements</dt><dd><%= booking.attendee_notes %></dd>
+            <% } %>
+          </dl>
+
+          <hr>
+
+          <p class="small muted mb-0">
+            Booked by account <strong class="strong"><%= booking.user_name %></strong>
+            (<a href="mailto:<%= booking.user_email %>"><%= booking.user_email %></a><% if (booking.user_phone) { %> · <%= booking.user_phone %><% } %>)
+          </p>
+        </div>
+
+        <div class="card mb-md">
+          <div class="card-head">
+            <h3 style="font-size:18px;letter-spacing:-0.5px">Payment</h3>
+            <span class="badge badge-outline"><%= booking.gateway || 'n/a' %></span>
+          </div>
+          <dl class="kv">
+            <dt>Amount</dt><dd><%= money(booking.amount, booking.currency) %></dd>
+            <dt>Status</dt><dd><span class="badge <%= statusClass(booking.payment_status) %>"><%= booking.payment_status %></span></dd>
+            <dt>Reference (tran_id)</dt><dd class="mono" style="font-size:13px"><%= booking.tran_id %></dd>
+            <% if (booking.session_key) { %><dt>Session key</dt><dd class="mono" style="font-size:12px"><%= booking.session_key %></dd><% } %>
+            <% if (booking.payment_id) { %><dt>Payment ID</dt><dd class="mono" style="font-size:12px"><%= booking.payment_id %></dd><% } %>
+            <% if (booking.val_id) { %><dt>Validation ID</dt><dd class="mono" style="font-size:12px"><%= booking.val_id %></dd><% } %>
+            <% if (booking.bank_tran_id) { %><dt>Bank transaction</dt><dd class="mono" style="font-size:12px"><%= booking.bank_tran_id %></dd><% } %>
+            <% if (booking.card_type) { %><dt>Method</dt><dd><%= booking.card_type %></dd><% } %>
+            <dt>Attempts</dt><dd><%= booking.attempts || 0 %></dd>
+            <dt>Created</dt><dd><%= formatDateTime(booking.created_at) %></dd>
+            <% if (booking.paid_at) { %><dt>Paid at</dt><dd><%= formatDateTime(booking.paid_at) %></dd><% } %>
+            <% if (booking.refunded_at) { %><dt>Refunded at</dt><dd><%= formatDateTime(booking.refunded_at) %></dd><% } %>
+            <% if (booking.payment_note) { %><dt>Note</dt><dd><%= booking.payment_note %></dd><% } %>
+          </dl>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3 style="font-size:18px;letter-spacing:-0.5px">Audit trail</h3>
+            <span class="badge badge-outline"><%= events.length %> event<%= events.length === 1 ? '' : 's' %></span>
+          </div>
+
+          <% if (events.length) { %>
+            <ul class="timeline">
+              <% events.forEach(function (ev) {
+                   const good = ['payment.paid', 'booking.created', 'payment.session_created'].includes(ev.event);
+                   const bad = ev.event.includes('fail') || ev.event.includes('cancel') || ev.event.includes('error');
+              %>
+                <li class="<%= good ? 'is-good' : (bad ? 'is-bad' : '') %>">
+                  <div class="t-event"><%= ev.event %></div>
+                  <div class="t-time"><%= formatDateTime(ev.created_at) %><%= ev.gateway ? ' · ' + ev.gateway : '' %></div>
+                  <% if (ev.detail) { %><div class="t-detail"><%= ev.detail %></div><% } %>
+                </li>
+              <% }); %>
+            </ul>
+          <% } else { %>
+            <p class="small muted mb-0">No payment events recorded for this booking yet.</p>
+          <% } %>
+        </div>
+      </div>
+
+      <aside>
+        <div class="card card-raised summary">
+          <span class="eyebrow" style="margin-bottom:12px">Actions</span>
+
+          <form method="POST" action="/admin/bookings/<%= booking.id %>/status" class="mb-md">
+            <label class="label" for="payment_status">Set payment status</label>
+            <select class="select" id="payment_status" name="payment_status" style="margin-bottom:8px">
+              <% ['Pending','Paid','Failed','Cancelled','Expired','Refunded'].forEach(function (s) { %>
+                <option value="<%= s %>" <%= booking.payment_status === s ? 'selected' : '' %>><%= s %></option>
+              <% }); %>
+            </select>
+            <button type="submit" class="btn btn-secondary btn-sm btn-block">Apply status</button>
+            <p class="help">Manual overrides are recorded in the audit trail with your email.</p>
+          </form>
+
+          <% if (booking.payment_status === 'Paid') { %>
+            <form method="POST" action="/admin/bookings/<%= booking.id %>/refund"
+                  onsubmit="return confirm('Refund this booking? The attendee will be emailed and the seat released.')">
+              <button type="submit" class="btn btn-danger btn-sm btn-block">Refund booking</button>
+            </form>
+            <p class="help">
+              Attempts a gateway refund where supported, then records it and notifies the attendee.
+            </p>
+          <% } %>
+
+          <hr>
+
+          <a href="/booking/<%= booking.id %>/confirmation" class="btn btn-ghost btn-sm btn-block">
+            View customer confirmation
+          </a>
+          <% if (booking.payment_status === 'Paid') { %>
+            <a href="/booking/<%= booking.id %>/receipt" class="btn btn-ghost btn-sm btn-block mt-sm">View receipt</a>
+          <% } %>
+        </div>
+
+        <% if (booking.gateway_response) { %>
+          <details class="card card-soft mt-md">
+            <summary class="small strong" style="cursor:pointer">Raw gateway response</summary>
+            <pre class="mono" style="font-size:11px;white-space:pre-wrap;word-break:break-all;margin:12px 0 0;color:var(--body)"><%= booking.gateway_response %></pre>
+          </details>
+        <% } %>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

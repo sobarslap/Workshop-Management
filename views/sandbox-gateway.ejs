@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Secure Checkout — Sandbox Gateway</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono&display=swap">
+  <link rel="stylesheet" href="/css/style.css">
+  <meta name="robots" content="noindex">
+</head>
+<!--
+  This page deliberately does NOT look like the rest of the site. A real gateway
+  is a different company's domain, and the visual break is part of what tells the
+  customer they have left the merchant. Keeping that break makes the demo honest.
+-->
+<body class="gw-body">
+  <div class="gw-card">
+    <div class="gw-head">
+      <div class="gw-brandline">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="width:22px;height:22px;border-radius:6px;background:#171717;display:grid;place-items:center">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.6"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>
+          </span>
+          <strong style="font-size:14px;letter-spacing:-0.4px;color:var(--ink)">Sandbox Gateway</strong>
+        </div>
+        <span class="badge badge-pending">Test mode</span>
+      </div>
+
+      <div class="gw-amount"><%= session.currency === 'BDT' ? '৳' : session.currency + ' ' %><%= Number(session.amount).toFixed(2) %></div>
+      <p class="small muted" style="margin:4px 0 0"><%= session.product_name %></p>
+    </div>
+
+    <div class="gw-body-inner">
+      <div class="gw-note">
+        No real payment is processed. Choose an outcome below to test the full flow —
+        including how the merchant handles a decline.
+      </div>
+
+      <form method="POST" action="/sandbox-gateway/<%= session.session_key %>">
+        <label class="label" style="font-size:13px">Payment method</label>
+        <div class="gw-methods">
+          <label class="gw-method"><input type="radio" name="method" value="Visa" checked>Visa</label>
+          <label class="gw-method"><input type="radio" name="method" value="Mastercard">Mastercard</label>
+          <label class="gw-method"><input type="radio" name="method" value="bKash">bKash</label>
+          <label class="gw-method"><input type="radio" name="method" value="Nagad">Nagad</label>
+          <label class="gw-method"><input type="radio" name="method" value="Rocket">Rocket</label>
+          <label class="gw-method"><input type="radio" name="method" value="Net Banking">Banking</label>
+        </div>
+
+        <div class="field">
+          <label class="label" for="card">Card / wallet number</label>
+          <input class="input" id="card" type="text" value="4242 4242 4242 4242" readonly
+                 style="font-family:var(--font-mono);letter-spacing:1px">
+          <p class="help">Prefilled test credentials — no input needed.</p>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label class="label" for="exp">Expiry</label>
+            <input class="input" id="exp" type="text" value="12 / 30" readonly style="font-family:var(--font-mono)">
+          </div>
+          <div class="field">
+            <label class="label" for="cvc">CVC</label>
+            <input class="input" id="cvc" type="text" value="123" readonly style="font-family:var(--font-mono)">
+          </div>
+        </div>
+
+        <button type="submit" name="action" value="pay" class="btn btn-primary btn-lg btn-block">
+          Pay <%= session.currency === 'BDT' ? '৳' : session.currency + ' ' %><%= Number(session.amount).toFixed(2) %>
+        </button>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+          <button type="submit" name="action" value="fail" class="btn btn-secondary btn-sm">Simulate decline</button>
+          <button type="submit" name="action" value="cancel" class="btn btn-secondary btn-sm">Cancel payment</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="gw-foot">
+      <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <span>Paying <strong style="color:var(--ink)"><%= session.customer_name %></strong></span>
+        <span class="mono" style="font-size:11px"><%= session.tran_id %></span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

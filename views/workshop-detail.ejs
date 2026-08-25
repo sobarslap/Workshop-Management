@@ -1,0 +1,171 @@
+<%- include('partials/header') %>
+<%
+  const remaining = Math.max(0, workshop.seats_remaining);
+  const taken = Math.max(0, workshop.capacity - remaining);
+  const pct = workshop.capacity > 0 ? Math.min(100, Math.round((taken / workshop.capacity) * 100)) : 0;
+  const full = remaining <= 0;
+  const low = !full && remaining / workshop.capacity <= 0.25;
+  const past = isPast(workshop.workshop_date);
+%>
+
+<div class="page" style="position:relative;overflow:hidden">
+  <div class="mesh mesh-sm" aria-hidden="true"></div>
+  <div class="container" style="position:relative;z-index:1">
+
+    <p class="small mb-md">
+      <a href="/workshops" class="muted">&larr; All workshops</a>
+    </p>
+
+    <div class="checkout-grid">
+      <div>
+        <div class="wcard-meta mb-md">
+          <% if (workshop.level) { %><span class="badge badge-outline"><%= workshop.level %></span><% } %>
+          <% if (past) { %>
+            <span class="badge badge-neutral">Date passed</span>
+          <% } else if (full) { %>
+            <span class="badge badge-failed"><span class="dot"></span>Fully booked</span>
+          <% } else if (low) { %>
+            <span class="badge badge-pending"><span class="dot"></span>Only <%= remaining %> seat<%= remaining === 1 ? '' : 's' %> left</span>
+          <% } else { %>
+            <span class="badge badge-paid"><span class="dot"></span><%= remaining %> seats available</span>
+          <% } %>
+        </div>
+
+        <h1 style="font-size:40px;letter-spacing:-1.9px"><%= workshop.title %></h1>
+        <p class="lead"><%= workshop.description %></p>
+
+        <div class="card mt-lg">
+          <h3 style="font-size:18px;letter-spacing:-0.5px">Session details</h3>
+          <dl class="kv mt-md">
+            <dt>Date</dt>
+            <dd><%= formatDate(workshop.workshop_date) %> <span class="muted small">(<%= relativeDays(workshop.workshop_date) %>)</span></dd>
+
+            <% if (workshop.start_time) { %>
+              <dt>Time</dt>
+              <dd><%= workshop.start_time %><%= workshop.end_time ? ' – ' + workshop.end_time : '' %></dd>
+            <% } %>
+
+            <% if (workshop.location) { %>
+              <dt>Location</dt>
+              <dd><%= workshop.location %></dd>
+            <% } %>
+
+            <% if (workshop.instructor) { %>
+              <dt>Instructor</dt>
+              <dd><%= workshop.instructor %></dd>
+            <% } %>
+
+            <% if (workshop.level) { %>
+              <dt>Level</dt>
+              <dd><%= workshop.level %></dd>
+            <% } %>
+
+            <dt>Room capacity</dt>
+            <dd><%= workshop.capacity %> seats</dd>
+
+            <dt>Price per seat</dt>
+            <dd><%= money(workshop.price) %></dd>
+          </dl>
+        </div>
+
+        <div class="card mt-md">
+          <h3 style="font-size:18px;letter-spacing:-0.5px">What's included</h3>
+          <ul class="small" style="margin:12px 0 0;padding-left:18px;line-height:26px">
+            <li>Full-day instructor-led session with hands-on exercises</li>
+            <li>Printed workbook and digital slide pack to keep</li>
+            <li>Certificate of completion issued to each attendee</li>
+            <li>Lunch and refreshments for in-person sessions</li>
+            <li>30 days of follow-up email support with the instructor</li>
+          </ul>
+        </div>
+      </div>
+
+      <aside>
+        <div class="card card-raised summary">
+          <div class="row-between" style="align-items:baseline;margin-bottom:12px">
+            <div>
+              <div class="price"><%= money(workshop.price) %></div>
+              <div class="price-unit">per seat, incl. materials</div>
+            </div>
+          </div>
+
+          <div class="meter" role="img" aria-label="<%= taken %> of <%= workshop.capacity %> seats taken">
+            <div class="meter-fill <%= full ? 'is-full' : (low ? 'is-low' : '') %>" style="width:<%= pct %>%"></div>
+          </div>
+          <div class="meter-legend mb-md">
+            <span><%= taken %>/<%= workshop.capacity %> booked</span>
+            <span><%= remaining %> left</span>
+          </div>
+
+          <% if (existing && existing.payment_status === 'Paid') { %>
+            <div class="alert alert-success" style="margin-bottom:12px">
+              <span>You're booked on this workshop.</span>
+            </div>
+            <a href="/booking/<%= existing.id %>/confirmation" class="btn btn-primary btn-block">View confirmation</a>
+
+          <% } else if (existing) { %>
+            <div class="alert alert-warning" style="margin-bottom:12px">
+              <span>You have a seat on hold here. Complete payment to confirm it.</span>
+            </div>
+            <a href="/booking/<%= existing.id %>/pay" class="btn btn-primary btn-block">Complete payment</a>
+
+          <% } else if (past) { %>
+            <button class="btn btn-secondary btn-block" disabled>This date has passed</button>
+            <p class="help center mt-sm">Register interest and we'll tell you about the next one.</p>
+            <a href="/eoi?workshop_id=<%= workshop.id %>" class="btn btn-ghost btn-block mt-sm">Express interest</a>
+
+          <% } else if (full) { %>
+            <button class="btn btn-secondary btn-block" disabled>Fully booked</button>
+            <p class="help center mt-sm">This date has reached its <%= workshop.capacity %>-seat capacity.</p>
+            <a href="/eoi?workshop_id=<%= workshop.id %>" class="btn btn-primary btn-block mt-sm">Join the waitlist</a>
+
+          <% } else if (currentUser) { %>
+            <a href="/book/<%= workshop.id %>" class="btn btn-primary btn-block btn-lg">Book a seat</a>
+            <p class="help center mt-sm">Your seat is held for <%= seatHoldMinutes %> minutes while you pay.</p>
+
+          <% } else { %>
+            <a href="/login?next=/book/<%= workshop.id %>" class="btn btn-primary btn-block btn-lg">Log in to book</a>
+            <p class="help center mt-sm">
+              An account is required to book. <a href="/register">Create one free</a> — it takes a minute.
+            </p>
+          <% } %>
+
+          <div class="trust-row" style="justify-content:center">
+            <span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>
+              Secure payment
+            </span>
+            <span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>
+              Instant confirmation
+            </span>
+          </div>
+        </div>
+
+        <div class="card card-soft mt-md">
+          <span class="eyebrow" style="margin-bottom:8px">Booking for a group?</span>
+          <p class="small" style="margin:0 0 12px">
+            Book one seat at a time, or tell us your group size and we'll arrange a private session at your office.
+          </p>
+          <a href="/eoi?workshop_id=<%= workshop.id %>" class="btn btn-secondary btn-sm btn-block">Enquire about group rates</a>
+        </div>
+      </aside>
+    </div>
+
+    <% if (related.length) { %>
+      <div class="section-tight">
+        <div class="section-head">
+          <span class="eyebrow">Also coming up</span>
+          <h2>Other workshops.</h2>
+        </div>
+        <div class="workshop-grid">
+          <% related.forEach(function (w) { %>
+            <%- include('partials/workshop-card', { w: w }) %>
+          <% }); %>
+        </div>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

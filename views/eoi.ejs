@@ -1,0 +1,103 @@
+<%- include('partials/header') %>
+
+<div class="page" style="position:relative;overflow:hidden">
+  <div class="mesh mesh-sm" aria-hidden="true"></div>
+  <div class="container" style="position:relative;z-index:1">
+    <div class="checkout-grid">
+      <div>
+        <div class="page-head">
+          <span class="eyebrow">Expression of interest</span>
+          <h1>Tell us what your team needs.</h1>
+          <p class="lead">No commitment. We'll email you an acknowledgment immediately and follow up within one business day.</p>
+        </div>
+
+        <div class="card card-lg">
+          <form method="POST" action="/eoi" class="stack" novalidate>
+            <div class="grid-2">
+              <div class="field">
+                <label class="label" for="name">Full name <span class="req">*</span></label>
+                <input class="input" type="text" id="name" name="name" required
+                       value="<%= form.name || '' %>" placeholder="Ayesha Karim" autocomplete="name">
+              </div>
+              <div class="field">
+                <label class="label" for="company">Company <span class="label-hint">(optional)</span></label>
+                <input class="input" type="text" id="company" name="company"
+                       value="<%= form.company || '' %>" placeholder="Acme Ltd" autocomplete="organization">
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="field">
+                <label class="label" for="email">Work email <span class="req">*</span></label>
+                <input class="input" type="email" id="email" name="email" required
+                       value="<%= form.email || '' %>" placeholder="ayesha@acme.com" autocomplete="email">
+              </div>
+              <div class="field">
+                <label class="label" for="phone">Phone <span class="label-hint">(optional)</span></label>
+                <input class="input" type="tel" id="phone" name="phone"
+                       value="<%= form.phone || '' %>" placeholder="01XXXXXXXXX" autocomplete="tel">
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label" for="workshop_id">Workshop of interest <span class="req">*</span></label>
+              <select class="select" id="workshop_id" name="workshop_id" required>
+                <option value="">Choose a workshop…</option>
+                <% workshops.forEach(function (w) { %>
+                  <option value="<%= w.id %>" <%= String(form.workshop_id) === String(w.id) ? 'selected' : '' %>>
+                    <%= w.title %> — <%= formatDate(w.workshop_date) %> (<%= money(w.price) %>)<%= w.seats_remaining <= 0 ? ' — waitlist' : '' %>
+                  </option>
+                <% }); %>
+              </select>
+              <p class="help">Not sure which one? Pick the closest fit and mention it in your message.</p>
+            </div>
+
+            <div class="field">
+              <label class="label" for="message">Anything we should know? <span class="label-hint">(optional)</span></label>
+              <textarea class="textarea" id="message" name="message"
+                        placeholder="Group size, preferred dates, specific topics you want covered…"><%= form.message || '' %></textarea>
+            </div>
+
+            <div class="field mb-0">
+              <button type="submit" class="btn btn-primary btn-lg">Send my interest</button>
+            </div>
+
+            <p class="help mb-0">
+              We use your details only to respond to this enquiry. No marketing lists, no sharing with third parties.
+            </p>
+          </form>
+        </div>
+      </div>
+
+      <aside>
+        <div class="card summary">
+          <span class="eyebrow" style="margin-bottom:8px">What happens next</span>
+          <ul class="timeline" style="margin-top:12px">
+            <li class="is-good">
+              <div class="t-event">immediately</div>
+              <div class="t-detail">An acknowledgment email arrives with the workshop details and price.</div>
+            </li>
+            <li>
+              <div class="t-event">within 1 business day</div>
+              <div class="t-detail">A training advisor replies about dates, group size and any custom content.</div>
+            </li>
+            <li>
+              <div class="t-event">whenever you're ready</div>
+              <div class="t-detail">Book online yourself, or we invoice the company directly.</div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="card card-soft mt-md">
+          <p class="small" style="margin:0 0 12px">
+            <strong class="strong">Ready to book now?</strong><br>
+            Skip the enquiry and reserve a seat straight away.
+          </p>
+          <a href="/workshops" class="btn btn-secondary btn-sm btn-block">Browse workshops</a>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

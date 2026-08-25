@@ -1,0 +1,70 @@
+<%- include('partials/header') %>
+
+<div class="auth-shell">
+  <div class="mesh mesh-sm" aria-hidden="true"></div>
+  <div class="container page-tight">
+    <div class="auth-card">
+      <div class="auth-head">
+        <span class="eyebrow">Welcome back</span>
+        <h1>Log in.</h1>
+        <p class="muted small">You need an account to book a workshop seat.</p>
+      </div>
+
+      <form method="POST" action="/login" class="stack" novalidate>
+        <div class="field">
+          <label class="label" for="email">Email</label>
+          <input class="input" type="email" id="email" name="email" required autofocus
+                 value="<%= form.email || '' %>" placeholder="you@company.com" autocomplete="email">
+        </div>
+
+        <div class="field">
+          <div class="row-between" style="margin-bottom:6px">
+            <label class="label" for="password" style="margin:0">Password</label>
+            <a href="/forgot-password" class="small">Forgot password?</a>
+          </div>
+          <div class="password-wrap">
+            <input class="input" type="password" id="password" name="password" required
+                   placeholder="Your password" autocomplete="current-password">
+            <button type="button" class="password-toggle" data-password-toggle="password" aria-label="Show password">Show</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="check">
+            <input type="checkbox" name="remember" value="1">
+            <span>
+              Keep me logged in
+              <span class="help" style="margin-top:2px">Stays signed in on this device for <%= 30 %> days. Don't use this on a shared computer.</span>
+            </span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg btn-block">Log in</button>
+      </form>
+
+      <div class="auth-foot">
+        New here? <a href="/register">Create an account</a>
+      </div>
+    </div>
+
+    <div class="card card-soft mt-md">
+      <span class="eyebrow" style="margin-bottom:10px">Demo accounts</span>
+      <div class="cred-list">
+        <div class="cred">
+          <span>Administrator</span>
+          <span class="mono">admin@workshops.com / admin123</span>
+        </div>
+        <div class="cred">
+          <span>Customer</span>
+          <span class="mono">register your own in seconds</span>
+        </div>
+      </div>
+      <p class="help mb-0">
+        After <%= 5 %> failed attempts an account is locked for a short period — that's the
+        brute-force guard, not a bug.
+      </p>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

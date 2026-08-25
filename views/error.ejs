@@ -1,0 +1,19 @@
+<%- include('partials/header') %>
+
+<div class="page" style="position:relative;overflow:hidden">
+  <div class="mesh mesh-sm" aria-hidden="true"></div>
+  <div class="container page-narrow" style="position:relative;z-index:1">
+    <div class="result">
+      <span class="eyebrow"><%= code %></span>
+      <h1 style="font-size:52px;letter-spacing:-2.6px"><%= code === 404 ? 'Page not found.' : (code === 403 ? 'Not allowed.' : 'Something broke.') %></h1>
+      <p><%= message %></p>
+
+      <div class="row" style="justify-content:center">
+        <a href="/" class="btn btn-primary">Back to home</a>
+        <a href="/workshops" class="btn btn-secondary">Browse workshops</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

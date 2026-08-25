@@ -1,0 +1,39 @@
+{
+  "name": "corporate-workshops",
+  "version": "3.0.0",
+  "description": "Corporate workshop booking platform — EOI, capacity-controlled booking, multi-gateway payments (SSLCommerz / bKash / built-in sandbox), admin dashboard.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "reset-db": "node scripts/reset-db.js",
+    "seed": "node scripts/seed-demo.js",
+    "smoke": "node scripts/smoke-test.js",
+    "test:gateways": "node scripts/test-gateways.js",
+    "test": "node scripts/test-gateways.js && node scripts/smoke-test.js"
+  },
+  "keywords": [
+    "workshops",
+    "booking",
+    "sslcommerz",
+    "bkash",
+    "express"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "connect-flash": "^0.1.1",
+    "dotenv": "^17.4.2",
+    "ejs": "^6.0.1",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "nodemailer": "^9.0.5"
+  },
+  "engines": {
+    "node": ">=22.5"
+  },
+  "optionalDependencies": {
+    "better-sqlite3": "^13.0.3"
+  }
+}
